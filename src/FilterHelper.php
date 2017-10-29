@@ -37,7 +37,7 @@ class FilterHelper
     public static function removeInvalidWww(array $array) : array
     {
         return array_filter($array, function (array $a) {
-            return (filter_var($a['www'], FILTER_VALIDATE_URL) !== false);
+            return filter_var($a['www'], FILTER_VALIDATE_URL) !== false;
         });
     }
 }
