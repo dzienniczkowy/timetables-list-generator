@@ -29,10 +29,10 @@ class SourcesDownloader
 
         foreach ($downloadList as $key => $url) {
             $filename = pathinfo($url)['filename'].'.zip';
-            echo '['.($key+1).'/'.$all.'] Pobieranie '.$filename.'...';
+            echo '['.($key + 1).'/'.$all.'] Pobieranie '.$filename.'...';
 
             $this->client->request('GET', $url, [
-                'sink' => rtrim($target, '/').'/'.$filename
+                'sink' => rtrim($target, '/').'/'.$filename,
             ]);
             echo ' zrobione.'.PHP_EOL;
         }
