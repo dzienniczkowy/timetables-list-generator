@@ -64,7 +64,7 @@ class Checker
         $requests = function (array $items) {
             foreach ($items as $key => $value) {
                 yield new Request('GET', $value['www'], [
-                    'connect_timeout' => 3.14
+                    'connect_timeout' => 3.14,
                 ]);
             }
         };
@@ -103,6 +103,7 @@ class Checker
                 echo PHP_EOL;
             },
         ]);
+
         try {
             $pool->promise()->wait();
         } catch (Exception $e) {
@@ -111,12 +112,13 @@ class Checker
         usort($filtered, function ($a, $b) {
             return $a['www'] <=> $b['www'];
         });
+
         return [
-            'filtered' => $filtered,
-            'errors' => $this->error,
-            'clientErrors' => $this->clientError,
+            'filtered'      => $filtered,
+            'errors'        => $this->error,
+            'clientErrors'  => $this->clientError,
             'connectErrors' => $this->connectError,
-            'total' => $this->numberOfAll,
+            'total'         => $this->numberOfAll,
         ];
     }
 }
