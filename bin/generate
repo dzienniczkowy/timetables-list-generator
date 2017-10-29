@@ -3,6 +3,7 @@
 
 use Colors\Color;
 use GuzzleHttp\Client;
+use Wulkanowy\TimetablesListGenerator\Checker;
 use Wulkanowy\TimetablesListGenerator\FilterHelper;
 use Wulkanowy\TimetablesListGenerator\NormalizeHelper;
 use Wulkanowy\TimetablesListGenerator\Parser;
@@ -95,4 +96,16 @@ if (!file_exists($downloads.'/urls.json')) {
     $schools = json_decode(file_get_contents($downloads.'/urls.json'), true);
 }
 
-echo $c('Nie ma nic więcej do zrobienia.')->fg('green').PHP_EOL;
+echo $c('Testowanie...')->fg('green');
+$checker = new Checker($client, $schools);
+$results = $checker->check();
+echo $c('Odnaleziono '.count($results['filtered']).' z '.count($schools))->fg('yellow').PHP_EOL;
+echo $c('Błędów '.$results['errors'].' w tym błędów połączenia: '
+        .$results['connectErrors'].', błędów klienta: '
+        .$results['clientErrors'])->fg('yellow').PHP_EOL;
+echo $c('Testowanie zakończone.')->fg('green').PHP_EOL;
+
+echo $c('Zapisywanie adresów...')->fg('green');
+file_put_contents($downloads.'/timetables.json', json_encode($results['filtered']));
+echo ' zakończone.'.PHP_EOL;
+echo $c('Zapisano listę stron z adresami do '.$downloads.'/timetables.json.')->fg('green').PHP_EOL;
