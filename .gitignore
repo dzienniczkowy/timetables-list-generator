@@ -1,0 +1,4 @@
+/.idea/
+/downloads/
+/vendor/
+.php_cs.cache

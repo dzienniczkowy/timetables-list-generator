@@ -1,0 +1,98 @@
+#!/usr/bin/env php
+<?php
+
+use Colors\Color;
+use GuzzleHttp\Client;
+use Wulkanowy\TimetablesListGenerator\FilterHelper;
+use Wulkanowy\TimetablesListGenerator\NormalizeHelper;
+use Wulkanowy\TimetablesListGenerator\Parser;
+use Wulkanowy\TimetablesListGenerator\SortHelper;
+use Wulkanowy\TimetablesListGenerator\SourcesDownloader;
+use Wulkanowy\TimetablesListGenerator\ZipExtractor;
+
+define('ROOT_DIR', dirname(__DIR__));
+
+$downloads = ROOT_DIR.'/downloads';
+
+include ROOT_DIR.'/vendor/autoload.php';
+
+$client = new Client();
+$c = function(string $s)  {
+    echo date('H:i:s').' ';
+    return (new Color())($s);
+};
+
+if (!is_dir($downloads)) {
+    mkdir($downloads, 0775);
+    echo $c('Pobieranie źródeł.')->fg('green').PHP_EOL;
+    $sourcesDownloader = new SourcesDownloader($client, ROOT_DIR.'/sources.json');
+    $sourcesDownloader->download($downloads);
+
+    echo $c('Rozpakowywanie...')->fg('green');
+    foreach (glob($downloads.'/*.zip') as $key => $item) {
+        $extractor = new ZipExtractor($item);
+        $extractor->extract($downloads);
+    }
+    echo ' zakończone.'.PHP_EOL;
+} else {
+    echo $c('Używanie poprzednio pobranych źródeł.')->fg('green').PHP_EOL;
+}
+
+
+if (!file_exists($downloads.'/schools.json')) {
+    echo $c('Parsowanie...')->fg('green').PHP_EOL;
+
+    $province = [];
+    $items = glob($downloads.'/*.xls');
+    $all = count($items);
+    foreach ($items as $key => $item) {
+        echo $c('['.($key+1).'/'.$all.'] '.pathinfo($item)['filename'].'.xls').PHP_EOL;
+        $parser = new Parser($item);
+        $province[] = $parser->parse();
+    }
+
+    $schools = array_merge(...$province);
+
+    echo $c('Parsowanie zakończone.').PHP_EOL;
+
+    $data = json_encode($schools);
+
+    echo $c('Zapisywanie danych...')->fg('green');
+    file_put_contents($downloads.'/schools.json', $data);
+    echo ' zakończone.'.PHP_EOL;
+} else {
+    echo $c('Używanie poprzednio sparsowanych danych.')->fg('green').PHP_EOL;
+    $schools = json_decode(file_get_contents($downloads.'/schools.json'), true);
+}
+
+if (!file_exists($downloads.'/urls.json')) {
+    $schools = FilterHelper::complexityFilter($schools);
+    $schools = FilterHelper::wwwFilters($schools);
+    $schools = FilterHelper::removeDuplicatesByValue($schools, 'www');
+
+    foreach ($schools as $key => $item) {
+        $schools[$key]['www'] = NormalizeHelper::normalizeUrl($item['www']);
+    }
+
+    $schools = FilterHelper::removeInvalidWww($schools);
+
+    SortHelper::sortByValue($schools, 'www');
+
+    $output = [];
+
+    foreach ($schools as $key => $value) {
+        $output[] = [
+            'www' => $value['www'],
+            'name' => $value['name'],
+        ];
+    }
+
+    echo $c('Zapisywanie adresów...')->fg('green');
+    file_put_contents($downloads.'/urls.json', json_encode($output));
+    echo ' zakończone.'.PHP_EOL;
+} else {
+    echo $c('Używanie poprzednio przygotowanych adresów.')->fg('green').PHP_EOL;
+    $schools = json_decode(file_get_contents($downloads.'/urls.json'), true);
+}
+
+echo $c('Nie ma nic więcej do zrobienia.')->fg('green').PHP_EOL;

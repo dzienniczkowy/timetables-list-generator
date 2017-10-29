@@ -1,0 +1,23 @@
+{
+  "name": "wulkanowy/timetables-list-generator",
+  "description": "Timetables list generator for wulkanowy's timetable",
+  "type": "project",
+  "require": {
+    "php": "^7.0",
+    "nuovo/spreadsheet-reader": "^0.5.11",
+    "guzzlehttp/guzzle": "^6.3",
+    "kevinlebrun/colors.php": "^1.0"
+  },
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "Mikołaj Pich",
+      "email": "m.pich@outlook.com"
+    }
+  ],
+  "autoload": {
+    "psr-4": {
+      "Wulkanowy\\TimetablesListGenerator\\": "src/"
+    }
+  }
+}
