@@ -3,6 +3,8 @@
 namespace Wulkanowy\TimetablesListGenerator;
 
 use Colors\Color;
+use DOMDocument;
+use DOMXPath;
 use Exception;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\ClientException;
@@ -61,6 +63,7 @@ class Checker
         echo PHP_EOL;
         $c = new Color();
         $filtered = [];
+        $timetables = [];
         $requests = function (array $items) {
             foreach ($items as $key => $value) {
                 yield new Request('GET', $value['www'], [
@@ -78,8 +81,16 @@ class Checker
                 if (strpos($response->getBody(), 'Plan lekcji') === false) {
                     echo $c('Nie znaleziono planu lekcji.')->fg('dark_gray');
                 } else {
-                    $filtered[$index] = $value;
                     echo $c('Jest plan lekcji!')->fg('green');
+                    $timetableUrls = $this->getTimetableUrl($response->getBody(), $value['www']);
+                    $timetables[$index] = $timetableUrls;
+                    if (isset($timetableUrls[0])) {
+                        echo $c(' '.$timetableUrls[0]);
+                    } else {
+                        echo $c(' ale jakby go nie było')->fg('red');
+                    }
+                    $value['timetables'] = $timetableUrls;
+                    $filtered[$index] = $value;
                 }
                 $this->processed++;
                 echo PHP_EOL;
@@ -120,5 +131,35 @@ class Checker
             'connectErrors' => $this->connectError,
             'total'         => $this->numberOfAll,
         ];
+    }
+
+    private function getTimetableUrl(string $html, string $fullUrl) : array
+    {
+        libxml_use_internal_errors(true);
+        $dom = new DOMDocument();
+        $dom->loadHTML($html);
+
+        $xpath = new DOMXPath($dom);
+        $nodes = $xpath->query('/html/body//a');
+
+        $timetableList = [];
+
+        foreach ($nodes as $node) {
+            if (strpos(strtolower(trim($node->textContent)), 'plan lekcji') !== false) {
+                $url = $node->getAttribute('href');
+
+                if (substr($url, 0, strlen($fullUrl)) == $fullUrl) {
+                    $url = substr($url, strlen($fullUrl));
+                }
+
+                if (filter_var($url, FILTER_VALIDATE_URL)) {
+                    $timetableList[] = $url;
+                } else {
+                    $timetableList[] = rtrim($fullUrl, '/').'/'.ltrim($url, '/');
+                }
+            }
+        }
+
+        return array_unique($timetableList);
     }
 }
