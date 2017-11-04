@@ -17,7 +17,7 @@ $downloads = ROOT_DIR.'/downloads';
 
 include ROOT_DIR.'/vendor/autoload.php';
 
-$client = new Client();
+$client = new Client(['timeout' => 20]);
 $c = function(string $s)  {
     echo date('H:i:s').' ';
     return (new Color())($s);
