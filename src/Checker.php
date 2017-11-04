@@ -92,8 +92,8 @@ class Checker
                     $filtered[$index] = $value;
 
                     $timetables[$index] = [
-                        'www' => $value['www'],
-                        'name' => $value['name'],
+                        'www'        => $value['www'],
+                        'name'       => $value['name'],
                         'timetables' => $urls,
                     ];
                 }
