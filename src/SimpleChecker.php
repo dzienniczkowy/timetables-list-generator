@@ -14,7 +14,7 @@ use GuzzleHttp\Pool;
 use GuzzleHttp\Psr7\Request;
 use Psr\Http\Message\ResponseInterface;
 
-class Checker
+class SimpleChecker
 {
     /**
      * @var Client
@@ -74,8 +74,7 @@ class Checker
             'concurrency' => 50,
             'fulfilled'   => function (ResponseInterface $response, $index) use ($schools, &$filtered, &$timetables, $c) {
                 $value = $schools[$index];
-                $path = $value['www'];
-                echo '['.$this->processed.'/'.$this->numberOfAll.'] '.$path.' – ';
+                echo '['.$this->processed.'/'.$this->numberOfAll.'] '.$value['www'].' – ';
                 if (stripos($response->getBody(), 'plan lekcji') === false &&
                     stripos($response->getBody(), 'plan zajęć') === false &&
                     stripos($response->getBody(), 'plan') === false &&
