@@ -106,6 +106,6 @@ echo $c('Błędów '.$results['errors'].' w tym błędów połączenia: '
 echo $c('Testowanie zakończone.')->fg('green').PHP_EOL;
 
 echo $c('Zapisywanie adresów...')->fg('green');
-file_put_contents($downloads.'/timetables.json', json_encode($results['filtered']));
+file_put_contents($downloads.'/timetables.json', json_encode($results['timetables']));
 echo ' zakończone.'.PHP_EOL;
 echo $c('Zapisano listę stron z adresami do '.$downloads.'/timetables.json.')->fg('green').PHP_EOL;

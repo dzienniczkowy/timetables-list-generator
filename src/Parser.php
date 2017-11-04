@@ -27,7 +27,7 @@ class Parser
         $list = [];
 
         foreach ($reader as $key => $row) {
-            if (!isset($row[0]) || !is_numeric($row[0]) || $row[5] === '6') {
+            if (!isset($row[0]) || $row[5] === '6') {
                 continue;
             }
 

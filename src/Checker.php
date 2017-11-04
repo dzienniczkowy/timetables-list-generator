@@ -66,31 +66,36 @@ class Checker
         $timetables = [];
         $requests = function (array $items) {
             foreach ($items as $key => $value) {
-                yield new Request('GET', $value['www'], [
-                    'connect_timeout' => 3.14,
-                ]);
+                yield new Request('GET', $value['www']);
             }
         };
         $schools = $this->schools;
         $pool = new Pool($this->client, $requests($this->schools), [
             'concurrency' => 50,
-            'fulfilled'   => function (ResponseInterface $response, $index) use ($schools, &$filtered, $c) {
+            'fulfilled'   => function (ResponseInterface $response, $index) use ($schools, &$filtered, &$timetables, $c) {
                 $value = $schools[$index];
                 $path = $value['www'];
                 echo '['.$this->processed.'/'.$this->numberOfAll.'] '.$path.' – ';
-                if (strpos($response->getBody(), 'Plan lekcji') === false) {
+                if (stripos($response->getBody(), 'plan lekcji') === false &&
+                    stripos($response->getBody(), 'plan zajęć') === false &&
+                    stripos($response->getBody(), 'plan') === false) {
                     echo $c('Nie znaleziono planu lekcji.')->fg('dark_gray');
                 } else {
                     echo $c('Jest plan lekcji!')->fg('green');
-                    $timetableUrls = $this->getTimetableUrl($response->getBody(), $value['www']);
-                    $timetables[$index] = $timetableUrls;
-                    if (isset($timetableUrls[0])) {
-                        echo $c(' '.$timetableUrls[0]);
+                    $urls = $this->getTimetableUrl($response->getBody(), $value['www']);
+                    if (isset($urls[0])) {
+                        echo $c(' '.$urls[0]);
                     } else {
                         echo $c(' ale jakby go nie było')->fg('red');
                     }
-                    $value['timetables'] = $timetableUrls;
+                    $value['timetables'] = $urls;
                     $filtered[$index] = $value;
+
+                    $timetables[$index] = [
+                        'www' => $value['www'],
+                        'name' => $value['name'],
+                        'timetables' => $urls,
+                    ];
                 }
                 $this->processed++;
                 echo PHP_EOL;
@@ -126,6 +131,7 @@ class Checker
 
         return [
             'filtered'      => $filtered,
+            'timetables'    => $timetables,
             'errors'        => $this->error,
             'clientErrors'  => $this->clientError,
             'connectErrors' => $this->connectError,
@@ -145,10 +151,13 @@ class Checker
         $timetableList = [];
 
         foreach ($nodes as $node) {
-            if (strpos(strtolower(trim($node->textContent)), 'plan lekcji') !== false) {
+            /** @var \DOMElement $node */
+            if (stripos($node->textContent, 'plan lekcji') !== false ||
+                stripos($node->textContent, 'plan zajęć') !== false ||
+                stripos($node->textContent, 'plan') !== false) {
                 $url = $node->getAttribute('href');
 
-                if (substr($url, 0, strlen($fullUrl)) == $fullUrl) {
+                if (0 === strpos($url, $fullUrl)) {
                     $url = substr($url, strlen($fullUrl));
                 }
 
