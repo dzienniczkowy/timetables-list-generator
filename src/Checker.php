@@ -87,17 +87,17 @@ class Checker
                     $urls = $this->getTimetableUrl($response->getBody(), $value['www']);
                     if (isset($urls[0])) {
                         echo $c(' '.$urls[0]);
+                        $value['timetables'] = $urls;
+                        $filtered[$index] = $value;
+
+                        $timetables[$index] = [
+                            'www'        => $value['www'],
+                            'name'       => $value['name'],
+                            'timetables' => $urls,
+                        ];
                     } else {
                         echo $c(' ale jakby go nie było')->fg('red');
                     }
-                    $value['timetables'] = $urls;
-                    $filtered[$index] = $value;
-
-                    $timetables[$index] = [
-                        'www'        => $value['www'],
-                        'name'       => $value['name'],
-                        'timetables' => $urls,
-                    ];
                 }
                 $this->processed++;
                 echo PHP_EOL;
