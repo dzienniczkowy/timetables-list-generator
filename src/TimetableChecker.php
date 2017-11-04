@@ -10,6 +10,7 @@ use GuzzleHttp\Exception\ConnectException;
 use GuzzleHttp\Exception\RequestException;
 use GuzzleHttp\Pool;
 use GuzzleHttp\Psr7\Request;
+use GuzzleHttp\RedirectMiddleware;
 use Psr\Http\Message\ResponseInterface;
 
 class TimetableChecker
@@ -69,7 +70,7 @@ class TimetableChecker
         };
         $schools = $this->schools;
         $pool = new Pool($this->client, $requests($this->schools), [
-            'concurrency' => 50,
+            'concurrency' => 25,
             'fulfilled'   => function (ResponseInterface $response, $index) use ($schools, &$filtered, $c) {
                 $value = $schools[$index];
                 echo '['.$this->processed.'/'.$this->numberOfAll.'] '.$value['www'].' – ';
@@ -77,6 +78,10 @@ class TimetableChecker
                 if (strpos($str, 'Plan lekcji Optivum firmy VULCAN') !== false) {
                     echo $c('Szkoła używa Planu lekcji Optivum.')->fg('green');
                     $value['url'] = $value['timetables'][0];
+                    $redirects = $response->getHeader(RedirectMiddleware::HISTORY_HEADER);
+                    if (!empty($redirects)) {
+                        $value['url'] = end($redirects);
+                    }
                     $filtered[$index] = $value;
                 } else {
                     echo $c('nie wiem.')->fg('dark_gray');
@@ -111,7 +116,7 @@ class TimetableChecker
             echo $e->getMessage().PHP_EOL;
         }
         usort($filtered, function ($a, $b) {
-            return $a['url'] <=> $b['url'];
+            return $a['www'] <=> $b['www'];
         });
 
         return [

@@ -71,7 +71,7 @@ class SimpleChecker
         };
         $schools = $this->schools;
         $pool = new Pool($this->client, $requests($this->schools), [
-            'concurrency' => 50,
+            'concurrency' => 25,
             'fulfilled'   => function (ResponseInterface $response, $index) use ($schools, &$filtered, &$timetables, $c) {
                 $value = $schools[$index];
                 echo '['.$this->processed.'/'.$this->numberOfAll.'] '.$value['www'].' – ';

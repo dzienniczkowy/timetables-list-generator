@@ -18,7 +18,10 @@ $downloads = ROOT_DIR.'/downloads';
 
 include ROOT_DIR.'/vendor/autoload.php';
 
-$client = new Client(['timeout' => 40]);
+$client = new Client([
+    'timeout' => 40,
+	'allow_redirects' => ['track_redirects' => true],
+]);
 $c = function(string $s)  {
     echo date('H:i:s').' ';
     return (new Color())($s);
