@@ -78,9 +78,9 @@ class Checker
                 echo '['.$this->processed.'/'.$this->numberOfAll.'] '.$path.' – ';
                 if (stripos($response->getBody(), 'plan lekcji') === false &&
                     stripos($response->getBody(), 'plan zajęć') === false &&
-	                stripos($response->getBody(), 'plan') === false &&
-	                stripos($response->getBody(), 'podział godzin') === false &&
-	                stripos($response->getBody(), 'podział') === false) {
+                    stripos($response->getBody(), 'plan') === false &&
+                    stripos($response->getBody(), 'podział godzin') === false &&
+                    stripos($response->getBody(), 'podział') === false) {
                     echo $c('Nie znaleziono planu lekcji.')->fg('dark_gray');
                 } else {
                     echo $c('Jest plan lekcji!')->fg('green');
@@ -156,9 +156,9 @@ class Checker
             /** @var \DOMElement $node */
             if (stripos($node->textContent, 'plan lekcji') !== false ||
                 stripos($node->textContent, 'plan zajęć') !== false ||
-	            stripos($node->textContent, 'plan') !== false ||
-	            stripos($node->textContent, 'podział godzin') !== false ||
-	            stripos($node->textContent, 'podział') !== false) {
+                stripos($node->textContent, 'plan') !== false ||
+                stripos($node->textContent, 'podział godzin') !== false ||
+                stripos($node->textContent, 'podział') !== false) {
                 $url = $node->getAttribute('href');
 
                 if (0 === strpos($url, $fullUrl)) {
