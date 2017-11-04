@@ -102,7 +102,7 @@ if (!file_exists($downloads.'/urls.json')) {
 	echo $c('Testowanie...')->fg('green');
 	$checker = new SimpleChecker($client, $schools);
 	$results = $checker->check();
-	$timetables = $results['$timetables'];
+	$timetables = $results['timetables'];
 	echo $c('Odnaleziono '.count($results['filtered']).' z '.count($schools))->fg('yellow').PHP_EOL;
 	echo $c('Błędów '
             .$results['errors'].' w tym błędów połączenia: '
