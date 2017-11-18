@@ -3,6 +3,7 @@
 
 use Colors\Color;
 use GuzzleHttp\Client;
+use Wulkanowy\TimetablesListGenerator\AndroidXmlGenerator;
 use Wulkanowy\TimetablesListGenerator\SimpleChecker;
 use Wulkanowy\TimetablesListGenerator\FilterHelper;
 use Wulkanowy\TimetablesListGenerator\NormalizeHelper;
@@ -139,10 +140,17 @@ if (!file_exists($downloads.'/timetables.json')) {
 
     echo $c('Zapisywanie adresów...')->fg('green');
     file_put_contents($downloads.'/optivum.json', json_encode($results['filtered']));
+    $filtered = $results['filtered'];
+    unset($results);
     echo ' zakończone.'.PHP_EOL;
     echo $c('Zapisano listę stron z adresami do '.$downloads.'/optivum.json.')->fg('green').PHP_EOL;
 } else {
+    echo $c('Używanie poprzednio wygenerowanej listy adresów planów lekcji.')->fg('green').PHP_EOL;
+    $filtered = json_decode(file_get_contents($downloads.'/optivum.json'), true);
     unset($timetables);
 }
 
-echo $c('nie ma nic do zrobienia').PHP_EOL;
+echo $c('Generowanie pliku xml...')->fg('green');
+$xmlGenerator = new AndroidXmlGenerator($filtered);
+$xmlGenerator->save($downloads.'/timetables.xml');
+echo ' zakończone.'.PHP_EOL;
