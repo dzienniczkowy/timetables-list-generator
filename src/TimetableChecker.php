@@ -133,10 +133,12 @@ class TimetableChecker
     {
         if (strpos($html, 'Plan lekcji Optivum firmy VULCAN') !== false) {
             echo '(product name found) ';
+
             return true;
         }
         if (strpos($html, 'Plan lekcji 2000+ firmy VULCAN') !== false) {
             echo '(product (2000+) name found) ';
+
             return true;
         }
 
@@ -150,6 +152,7 @@ class TimetableChecker
             echo '(dom node';
             if ('plan' === $node->getAttribute('target')) {
                 echo ' found) ';
+
                 return true;
             }
             echo ') ';
@@ -162,6 +165,7 @@ class TimetableChecker
             echo '(xpath node';
             if (!empty($node->textContent)) {
                 echo ' found) ';
+
                 return true;
             }
             echo ') ';
