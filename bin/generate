@@ -126,7 +126,7 @@ if (!file_exists($downloads.'/timetables.json')) {
     unset($urls);
 }
 
-if (!file_exists($downloads.'/timetables.json')) {
+if (!file_exists($downloads.'/optivum.json')) {
     echo $c('Testowanie planów lekcji...')->fg('green');
     $checker = new TimetableChecker($client, $timetables);
     $results = $checker->check();
