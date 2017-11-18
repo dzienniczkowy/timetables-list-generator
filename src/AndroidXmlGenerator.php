@@ -21,14 +21,14 @@ class AndroidXmlGenerator implements GeneratorInterface
         $xml->addAttribute('android:tools:ignore', 'MissingTranslation');
 
         $timetableSchools = $xml->addChild('string-array');
-        $timetableSchools->addAttribute('name', 'names');
+        $timetableSchools->addAttribute('name', 'timetables_schools');
 
         foreach ($this->timetables as $name) {
             $timetableSchools->addChild('item', $name['name']);
         }
 
         $timetableUrls = $xml->addChild('string-array');
-        $timetableUrls->addAttribute('name', 'urls');
+        $timetableUrls->addAttribute('name', 'timetables_urls');
 
         foreach ($this->timetables as $name) {
             $timetableUrls->addChild('item', htmlspecialchars($name['url']));
@@ -40,7 +40,7 @@ class AndroidXmlGenerator implements GeneratorInterface
         $dom->loadXML($xml->asXML());
 
         $output = preg_replace_callback('/^( +)</m', function ($a) {
-            return str_repeat(' ', (int) (strlen($a[1]) / 2) * 4).'<';
+            return str_repeat(' ', (int) (\strlen($a[1]) / 2) * 4).'<';
         }, $dom->saveXML());
 
         return file_put_contents($filename, $output);
