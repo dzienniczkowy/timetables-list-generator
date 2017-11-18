@@ -43,7 +43,6 @@ if (!is_dir($downloads)) {
     echo $c('Używanie poprzednio pobranych źródeł.')->fg('green').PHP_EOL;
 }
 
-
 if (!file_exists($downloads.'/schools.json')) {
     echo $c('Parsowanie...')->fg('green').PHP_EOL;
 
@@ -83,27 +82,33 @@ if (!file_exists($downloads.'/urls.json')) {
 
     SortHelper::sortByValue($schools, 'www');
 
-    $output = [];
+    $urls = [];
 
     foreach ($schools as $key => $value) {
-        $output[] = [
+        $urls[] = [
             'www' => $value['www'],
             'name' => $value['name'],
         ];
     }
 
+    unset($schools);
+
     echo $c('Zapisywanie adresów...')->fg('green');
-    file_put_contents($downloads.'/urls.json', json_encode($output));
+    file_put_contents($downloads.'/urls.json', json_encode($urls));
     echo ' zakończone.'.PHP_EOL;
 } else {
     echo $c('Używanie poprzednio przygotowanych adresów.')->fg('green').PHP_EOL;
-    $schools = json_decode(file_get_contents($downloads.'/urls.json'), true);
-} if (!file_exists($downloads.'/timetables.json')) {
+    $urls = json_decode(file_get_contents($downloads.'/urls.json'), true);
+    unset($schools);
+}
+
+if (!file_exists($downloads.'/timetables.json')) {
 	echo $c('Testowanie...')->fg('green');
-	$checker = new SimpleChecker($client, $schools);
+	$checker = new SimpleChecker($client, $urls);
 	$results = $checker->check();
 	$timetables = $results['timetables'];
-	echo $c('Odnaleziono '.count($results['filtered']).' z '.count($schools))->fg('yellow').PHP_EOL;
+	echo $c('Odnaleziono '.count($results['filtered']).' z '.count($urls))->fg('yellow').PHP_EOL;
+    unset($urls);
 	echo $c('Błędów '
             .$results['errors'].' w tym błędów połączenia: '
 			.$results['connectErrors'].', błędów klienta: '
@@ -117,20 +122,27 @@ if (!file_exists($downloads.'/urls.json')) {
 } else {
     echo $c('Używanie poprzednio przygotowanych potencjalnych adresów planów lekcji.')->fg('green').PHP_EOL;
     $timetables = json_decode(file_get_contents($downloads.'/timetables.json'), true);
+    unset($urls);
 }
 
+if (!file_exists($downloads.'/timetables.json')) {
+    echo $c('Testowanie planów lekcji...')->fg('green');
+    $checker = new TimetableChecker($client, $timetables);
+    $results = $checker->check();
+    echo $c('Odnaleziono '.count($results['filtered']).' z '.count($timetables))->fg('yellow').PHP_EOL;
+    unset($timetables);
+    echo $c('Błędów '
+            .$results['errors'].' w tym błędów połączenia: '
+            .$results['connectErrors'].', błędów klienta: '
+            .$results['clientErrors'])->fg('yellow').PHP_EOL;
+    echo $c('Testowanie zakończone.')->fg('green').PHP_EOL;
 
-echo $c('Testowanie planów lekcji...')->fg('green');
-$checker = new TimetableChecker($client, $timetables);
-$results = $checker->check();
-echo $c('Odnaleziono '.count($results['filtered']).' z '.count($timetables))->fg('yellow').PHP_EOL;
-echo $c('Błędów '
-		.$results['errors'].' w tym błędów połączenia: '
-		.$results['connectErrors'].', błędów klienta: '
-		.$results['clientErrors'])->fg('yellow').PHP_EOL;
-echo $c('Testowanie zakończone.')->fg('green').PHP_EOL;
+    echo $c('Zapisywanie adresów...')->fg('green');
+    file_put_contents($downloads.'/optivum.json', json_encode($results['filtered']));
+    echo ' zakończone.'.PHP_EOL;
+    echo $c('Zapisano listę stron z adresami do '.$downloads.'/optivum.json.')->fg('green').PHP_EOL;
+} else {
+    unset($timetables);
+}
 
-echo $c('Zapisywanie adresów...')->fg('green');
-file_put_contents($downloads.'/optivum.json', json_encode($results['filtered']));
-echo ' zakończone.'.PHP_EOL;
-echo $c('Zapisano listę stron z adresami do '.$downloads.'/optivum.json.')->fg('green').PHP_EOL;
+echo $c('nie ma nic do zrobienia').PHP_EOL;
