@@ -3,6 +3,8 @@
 namespace Wulkanowy\TimetablesListGenerator;
 
 use Colors\Color;
+use DOMDocument;
+use DOMXPath;
 use Exception;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\ClientException;
@@ -54,7 +56,7 @@ class TimetableChecker
     {
         $this->client = $client;
         $this->schools = $schools;
-        $this->numberOfAll = count($schools);
+        $this->numberOfAll = \count($schools);
         sort($this->schools);
     }
 
@@ -74,8 +76,7 @@ class TimetableChecker
             'fulfilled'   => function (ResponseInterface $response, $index) use ($schools, &$filtered, $c) {
                 $value = $schools[$index];
                 echo '['.$this->processed.'/'.$this->numberOfAll.'] '.$value['www'].' – ';
-                $str = $response->getBody()->getContents();
-                if (strpos($str, 'Plan lekcji Optivum firmy VULCAN') !== false) {
+                if ($this->isOptivumTimetable($response->getBody()->getContents())) {
                     echo $c('Szkoła używa Planu lekcji Optivum.')->fg('green');
                     $value['url'] = $value['timetables'][0];
                     $redirects = $response->getHeader(RedirectMiddleware::HISTORY_HEADER);
@@ -126,5 +127,46 @@ class TimetableChecker
             'connectErrors' => $this->connectError,
             'total'         => $this->numberOfAll,
         ];
+    }
+
+    public function isOptivumTimetable(string $html) : bool
+    {
+        if (strpos($html, 'Plan lekcji Optivum firmy VULCAN') !== false) {
+            echo '(product name found) ';
+            return true;
+        }
+        if (strpos($html, 'Plan lekcji 2000+ firmy VULCAN') !== false) {
+            echo '(product (2000+) name found) ';
+            return true;
+        }
+
+        libxml_use_internal_errors(true);
+        $dom = new DOMDocument();
+        $dom->loadHTML($html);
+        $frames = $dom->getElementsByTagName('frame');
+
+        /** @var \DOMElement $node */
+        foreach ($frames as $node) {
+            echo '(dom node';
+            if ('plan' === $node->getAttribute('target')) {
+                echo ' found) ';
+                return true;
+            }
+            echo ') ';
+        }
+
+        $finder = new DomXPath($dom);
+        $nodes = $finder->query('//*[contains(@class, \'tytulnapis\')]');
+
+        foreach ($nodes as $node) {
+            echo '(xpath node';
+            if (!empty($node->textContent)) {
+                echo ' found) ';
+                return true;
+            }
+            echo ') ';
+        }
+
+        return false;
     }
 }
